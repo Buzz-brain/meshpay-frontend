@@ -20,6 +20,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [connected, setConnected] = useState(true);
   const [alert, setAlert] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [showNotification, setShowNotification] = useState(false);
+  const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
+  const [loadingTransactions, setLoadingTransactions] = useState(true);
 
   useEffect(() => {
     const result = authUtils.getUser();
@@ -30,7 +34,46 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
     }
     setUser(currentUser);
     fetchBalance(currentUser.accountNumber);
+    fetchRecentTransactions(currentUser.accountNumber);
   }, []);
+
+  const fetchRecentTransactions = async (accountNumber: string) => {
+    setLoadingTransactions(true);
+    try {
+      const response = await apiService.getTransactions(accountNumber);
+      if (response.success && response.data) {
+        // Show only the 3 most recent transactions
+        setRecentTransactions(response.data.transactions.slice(0, 3));
+      } else {
+        setRecentTransactions([]);
+      }
+    } catch (err) {
+      setRecentTransactions([]);
+    } finally {
+      setLoadingTransactions(false);
+    }
+  };
+
+  // Poll notifications every 5 seconds
+  useEffect(() => {
+    if (!user) return;
+    let interval: number;
+    const pollNotifications = async () => {
+      const response = await apiService.getNotifications(user.id);
+      if (response.success && response.data) {
+        // response.data is { notifications: [...] }
+        const notificationsArr = Array.isArray(response.data.notifications)
+          ? response.data.notifications
+          : [];
+        const unread = notificationsArr.filter((n: any) => !n.read);
+        setNotifications(unread);
+        setShowNotification(unread.length > 0);
+      }
+    };
+    pollNotifications();
+    interval = window.setInterval(pollNotifications, 5000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   const fetchBalance = async (accountNumber: string) => {
     try {
@@ -66,6 +109,30 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+      {/* Notification Popup */}
+      {showNotification && notifications.length > 0 && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md">
+          {notifications.map((n) => (
+            <div key={n._id} className="bg-white border border-blue-300 shadow-lg rounded-lg p-4 mb-2 flex items-center justify-between">
+              <span className="text-blue-700 font-medium">{n.message}</span>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={async () => {
+                  if (user) {
+                    await apiService.markNotificationsRead(user.id);
+                  }
+                  setShowNotification(false);
+                  setNotifications([]);
+                }}
+              >
+                Close
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Header */}
       <div className="p-6 pb-0">
         <div className="flex items-center justify-between mb-6">
@@ -173,11 +240,44 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
       {/* Recent Activity */}
       <div className="px-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Recent Activity</h2>
-        <Card className="p-6 text-center">
-          <Receipt className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-          <p className="text-gray-600">No recent transactions</p>
-          <p className="text-gray-500 text-sm mt-1">Your transaction history will appear here</p>
-        </Card>
+        {loadingTransactions ? (
+          <Card className="p-6 text-center">
+            <p className="text-gray-600">Loading recent transactions...</p>
+          </Card>
+        ) : recentTransactions.length === 0 ? (
+          <Card className="p-6 text-center">
+            <Receipt className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+            <p className="text-gray-600">No recent transactions</p>
+            <p className="text-gray-500 text-sm mt-1">Your transaction history will appear here</p>
+          </Card>
+        ) : (
+          <div className="space-y-4">
+            {recentTransactions.map((tx) => {
+              const isSent = tx.from === user?.accountNumber;
+              return (
+                <Card key={tx._id || tx.id} className="p-4 flex items-center justify-between">
+                  <div>
+                    <p className="font-semibold text-gray-900">
+                      {isSent ? 'Sent' : 'Received'} {isSent ? `to ${tx.to}` : `from ${tx.from}`}
+                    </p>
+                    {tx.description && (
+                      <p className="text-sm text-gray-500">{tx.description}</p>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <p className={`font-semibold ${tx.status === 'failed' ? 'text-gray-400' : isSent ? 'text-red-600' : 'text-green-600'}`}>
+                      {isSent ? '-' : '+'}{formatCurrency(tx.amount)}
+                    </p>
+                    <p className="text-sm text-gray-500">{new Date(tx.timestamp).toLocaleString()}</p>
+                    {tx.status === 'failed' && (
+                      <p className="text-xs text-red-600 font-medium">Failed</p>
+                    )}
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

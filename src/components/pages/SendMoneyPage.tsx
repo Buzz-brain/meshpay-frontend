@@ -95,7 +95,6 @@ export const SendMoneyPage: React.FC<SendMoneyPageProps> = ({ onNavigate }) => {
     }
   };
 
-  console.log(user.accountNumber);
   const handleSendMoney = async () => {
     setLoading(true);
     setAlert(null);
@@ -104,10 +103,11 @@ export const SendMoneyPage: React.FC<SendMoneyPageProps> = ({ onNavigate }) => {
       const transferData = {
         from: formatAccountNumber(user.accountNumber),
         to: formData.recipient,
-        amount: parseFloat(formData.amount)
+        amount: parseFloat(formData.amount),
+        description: formData.description || '',
       };
 
-      console.log(transferData)
+      // console.log(transferData)
 
       const response = await apiService.transfer(transferData);
 

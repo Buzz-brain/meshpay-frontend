@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Receipt, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { formatCurrency } from '../../utils/auth';
-import { Transaction } from '../../types';
+import { Transaction, User } from '../../types';
 
 import { PageType } from '../../types';
+import { apiService } from '../../services/api';
+import { authUtils } from '../../utils/auth';
 
 interface TransactionHistoryPageProps {
   onNavigate: (page: PageType) => void;
@@ -14,36 +16,34 @@ interface TransactionHistoryPageProps {
 export const TransactionHistoryPage: React.FC<TransactionHistoryPageProps> = ({ onNavigate }) => {
   const [filter, setFilter] = useState<'all' | 'sent' | 'received'>('all');
 
-  // Mock transaction data - in real app this would come from API
-  const [transactions] = useState<Transaction[]>([
-    {
-      id: '1',
-      from: '9012345678',
-      to: '8012345678',
-      amount: 5000,
-      timestamp: '2024-01-15T10:30:00Z',
-      status: 'success',
-      description: 'Lunch money'
-    },
-    {
-      id: '2',
-      from: '8012345678',
-      to: '9012345678',
-      amount: 2500,
-      timestamp: '2024-01-14T15:45:00Z',
-      status: 'success',
-      description: 'Transport fare'
-    },
-    {
-      id: '3',
-      from: '9012345678',
-      to: '7012345678',
-      amount: 10000,
-      timestamp: '2024-01-13T09:20:00Z',
-      status: 'failed',
-      description: 'Shopping'
-    }
-  ]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Get user account number from auth
+  const result = authUtils.getUser();
+  const currentUser: User = (result as any)?.user || result;
+  const userAccount = currentUser?.accountNumber || '';
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await apiService.getTransactions(userAccount);
+        if (response.success && response.data) {
+          setTransactions(response.data.transactions);
+        } else {
+          setError(response.message || 'Failed to fetch transactions');
+        }
+      } catch (err) {
+        setError('Network error');
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (userAccount) fetchTransactions();
+  }, [userAccount]);
 
   const formatDate = (timestamp: string) => {
     return new Date(timestamp).toLocaleDateString('en-US', {
@@ -70,7 +70,7 @@ export const TransactionHistoryPage: React.FC<TransactionHistoryPageProps> = ({ 
     return isSent ? 'Sent' : 'Received';
   };
 
-  const userAccount = '9012345678'; // This would come from auth context
+  // userAccount is now from authUtils
 
   const filteredTransactions = transactions.filter(transaction => {
     if (filter === 'all') return true;
@@ -122,7 +122,15 @@ export const TransactionHistoryPage: React.FC<TransactionHistoryPageProps> = ({ 
 
         {/* Transactions List */}
         <div className="space-y-4">
-          {filteredTransactions.length === 0 ? (
+          {loading ? (
+            <Card className="p-8 text-center">
+              <p className="text-gray-600">Loading transactions...</p>
+            </Card>
+          ) : error ? (
+            <Card className="p-8 text-center">
+              <p className="text-red-600">{error}</p>
+            </Card>
+          ) : filteredTransactions.length === 0 ? (
             <Card className="p-8 text-center">
               <Receipt className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">No Transactions</h3>
@@ -137,7 +145,6 @@ export const TransactionHistoryPage: React.FC<TransactionHistoryPageProps> = ({ 
             filteredTransactions.map((transaction) => {
               const Icon = getTransactionIcon(transaction, userAccount);
               const isSent = transaction.from === userAccount;
-              
               return (
                 <Card key={transaction.id} className="p-4">
                   <div className="flex items-center justify-between">
