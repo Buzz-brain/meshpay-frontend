@@ -4,7 +4,7 @@ export interface User {
   email: string;
   phone: string;
   accountNumber: string;
-  balance: number;
+  amount: number;
 }
 
 export interface LoginRequest {

@@ -67,7 +67,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
   };
 
   const safeUsers = Array.isArray(users) ? users : [];
-  const totalBalance = safeUsers.reduce((sum, user) => sum + (user.balance || 0), 0);
+  const totalBalance = safeUsers.reduce((sum, user) => sum + (user.amount || 0), 0);
 
   const safeFilteredUsers = Array.isArray(filteredUsers) ? filteredUsers : [];
 
@@ -179,7 +179,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onNaviga
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-gray-900">
-                      {formatCurrency(user.balance || 0)}
+                      {formatCurrency(user.amount || 0)}
                     </p>
                     <p className="text-gray-500 text-sm">Account: {user.accountNumber}</p>
                   </div>
