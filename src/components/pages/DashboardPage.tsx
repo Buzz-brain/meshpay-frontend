@@ -111,13 +111,29 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
       {/* Notification Popup */}
       {showNotification && notifications.length > 0 && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md">
+        <div className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md">
           {notifications.map((n) => (
-            <div key={n._id} className="bg-white border border-blue-300 shadow-lg rounded-lg p-4 mb-2 flex items-center justify-between">
-              <span className="text-blue-700 font-medium">{n.message}</span>
+            <div
+              key={n._id}
+              className="bg-gradient-to-r from-blue-800 to-purple-800 text-white shadow-2xl rounded-xl p-5 mb-4 flex items-center justify-between border border-blue-700 animate-fade-in"
+              style={{ boxShadow: '0 8px 32px rgba(60, 60, 180, 0.15)' }}
+            >
+              <div className="flex items-center gap-3">
+                <div className="bg-white/20 rounded-full p-2 flex items-center justify-center">
+                  <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
+                    <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10Z" fill="#fff" opacity="0.2"/>
+                    <path d="M12 8v4l3 2" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <div>
+                  <span className="block font-semibold text-lg leading-tight">New Transaction</span>
+                  <span className="block text-white/80 text-sm mt-1">{n.message}</span>
+                </div>
+              </div>
               <Button
                 size="sm"
                 variant="ghost"
+                className="bg-white/20 text-white hover:bg-white/30 px-4 py-2 rounded-lg font-semibold transition"
                 onClick={async () => {
                   if (user) {
                     await apiService.markNotificationsRead(user.id);
@@ -126,7 +142,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                   setNotifications([]);
                 }}
               >
-                Close
+                <span className="sr-only">Close</span>
+                <svg width="20" height="20" fill="none" viewBox="0 0 20 20">
+                  <path d="M6 6l8 8M6 14L14 6" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
               </Button>
             </div>
           ))}
