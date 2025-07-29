@@ -22,7 +22,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
   const [alert, setAlert] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
 
   useEffect(() => {
-    const currentUser = authUtils.getUser();
+    const result = authUtils.getUser();
+    const currentUser = (result as any)?.user || result;
     if (!currentUser) {
       onNavigate('welcome');
       return;
@@ -35,7 +36,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
     try {
       const response = await apiService.getBalance(accountNumber);
       if (response.success && response.data) {
-        setBalance(response.data.balance);
+        setBalance(response.data.amount);
         setConnected(true);
       } else {
         setAlert({ type: 'error', message: 'Failed to fetch balance' });

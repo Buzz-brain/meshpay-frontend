@@ -24,6 +24,7 @@ export const SendMoneyPage: React.FC<SendMoneyPageProps> = ({ onNavigate }) => {
   const [loading, setLoading] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [alert, setAlert] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
+  const [transferResult, setTransferResult] = useState<any>(null);
 
   const user = authUtils.getUser();
   if (!user) {
@@ -105,8 +106,9 @@ export const SendMoneyPage: React.FC<SendMoneyPageProps> = ({ onNavigate }) => {
       };
 
       const response = await apiService.transfer(transferData);
-      
-      if (response.success) {
+
+      if (response.success && response.data) {
+        setTransferResult(response.data);
         setStep('success');
       } else {
         setAlert({ type: 'error', message: response.message });
@@ -123,22 +125,73 @@ export const SendMoneyPage: React.FC<SendMoneyPageProps> = ({ onNavigate }) => {
   };
 
   if (step === 'success') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-6">
-        <Card className="w-full max-w-md p-8 text-center">
-          <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Transfer Successful!</h1>
-          <p className="text-gray-600 mb-6">
-            {formatCurrency(parseFloat(formData.amount))} has been sent to {recipientName}
-          </p>
-          <Button onClick={handleBackToDashboard} className="w-full">
-            Back to Dashboard
-          </Button>
-        </Card>
-      </div>
-    );
+    // If transferResult is not set, fallback to default notification
+    if (!transferResult) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-6">
+          <Card className="w-full max-w-md p-8 text-center">
+            <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Transfer Successful!</h1>
+            <p className="text-gray-600 mb-6">
+              {formatCurrency(parseFloat(formData.amount))} has been sent to {recipientName}
+            </p>
+            <Button onClick={handleBackToDashboard} className="w-full">
+              Back to Dashboard
+            </Button>
+          </Card>
+        </div>
+      );
+    }
+
+    // Check if current user is sender or receiver
+    const currentAccount = user.accountNumber;
+    const senderAccount = transferResult.senderAccountNumber;
+    const receiverAccount = transferResult.receiverAccountNumber;
+    const senderName = transferResult.senderName;
+    const receiverName = transferResult.receiverName;
+
+    if (currentAccount === senderAccount) {
+      // Sender notification
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-6">
+          <Card className="w-full max-w-md p-8 text-center">
+            <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Transfer Successful!</h1>
+            <p className="text-gray-600 mb-6">
+              {formatCurrency(parseFloat(formData.amount))} has been sent to {receiverName}
+            </p>
+            <Button onClick={handleBackToDashboard} className="w-full">
+              Back to Dashboard
+            </Button>
+          </Card>
+        </div>
+      );
+    } else if (currentAccount === receiverAccount) {
+      // Receiver notification
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-6">
+          <Card className="w-full max-w-md p-8 text-center">
+            <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Money Received!</h1>
+            <p className="text-gray-600 mb-6">
+              You received {formatCurrency(parseFloat(formData.amount))} from {senderName}
+            </p>
+            <Button onClick={handleBackToDashboard} className="w-full">
+              Back to Dashboard
+            </Button>
+          </Card>
+        </div>
+      );
+    } else {
+      // Neither sender nor receiver, show nothing
+      return null;
+    }
   }
 
   return (

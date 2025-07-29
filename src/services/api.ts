@@ -57,8 +57,8 @@ class ApiService {
     });
   }
 
-  async getBalance(accountNumber: string): Promise<ApiResponse<{ balance: number }>> {
-    return this.request<{ balance: number }>(`/balance?account=${accountNumber}`);
+  async getBalance(accountNumber: string): Promise<ApiResponse<{ amount: number }>> {
+    return this.request<{ amount: number }>(`/balance?account=${accountNumber}`);
   }
 
   async verifyName(accountNumber: string): Promise<ApiResponse<{ fullname: string }>> {
