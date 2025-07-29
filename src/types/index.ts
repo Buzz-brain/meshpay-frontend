@@ -22,7 +22,7 @@ export interface RegisterRequest {
 export interface TransferRequest {
   from: string;
   to: string;
-  amount: number;
+  amount: number | string;
 }
 
 export interface ApiResponse<T = any> {
@@ -40,6 +40,8 @@ export interface Transaction {
   timestamp: string;
   status: "success" | "failed" | "pending";
   description?: string;
+  senderName: string;
+  receiverName: string;
 }
 
 export type PageType = 'welcome' | 'login' | 'register' | 'dashboard' | 'send-money' | 'transactions' | 'admin' | 'admin-dashboard';

@@ -14,6 +14,17 @@ interface DashboardPageProps {
 }
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
+  // Icon and color helpers for transactions (copied from TransactionHistoryPage)
+  const getTransactionIcon = (tx: any, accountNumber: string) => {
+    const isSent = tx.from === accountNumber;
+    return isSent ? Send : Receipt;
+  };
+
+  const getTransactionColor = (tx: any, accountNumber: string) => {
+    if (tx.status === 'failed') return 'text-gray-400';
+    const isSent = tx.from === accountNumber;
+    return isSent ? 'text-red-600' : 'text-green-600';
+  };
   const [user, setUser] = useState<User | null>(null);
   const [balance, setBalance] = useState<number>(0);
   const [loading, setLoading] = useState(true);
@@ -137,6 +148,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 onClick={async () => {
                   if (user) {
                     await apiService.markNotificationsRead(user.id);
+                    await fetchBalance(user.accountNumber);
+                    await fetchRecentTransactions(user.accountNumber);
                   }
                   setShowNotification(false);
                   setNotifications([]);
@@ -273,24 +286,47 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           <div className="space-y-4">
             {recentTransactions.map((tx) => {
               const isSent = tx.from === user?.accountNumber;
+              const Icon = getTransactionIcon(tx, user?.accountNumber);
               return (
-                <Card key={tx._id || tx.id} className="p-4 flex items-center justify-between">
-                  <div>
-                    <p className="font-semibold text-gray-900">
-                      {isSent ? 'Sent' : 'Received'} {isSent ? `to ${tx.to}` : `from ${tx.from}`}
-                    </p>
-                    {tx.description && (
-                      <p className="text-sm text-gray-500">{tx.description}</p>
-                    )}
-                  </div>
-                  <div className="text-right">
-                    <p className={`font-semibold ${tx.status === 'failed' ? 'text-gray-400' : isSent ? 'text-red-600' : 'text-green-600'}`}>
-                      {isSent ? '-' : '+'}{formatCurrency(tx.amount)}
-                    </p>
-                    <p className="text-sm text-gray-500">{new Date(tx.timestamp).toLocaleString()}</p>
-                    {tx.status === 'failed' && (
-                      <p className="text-xs text-red-600 font-medium">Failed</p>
-                    )}
+                <Card key={tx._id || tx.id} className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-4 ${
+                        tx.status === 'failed'
+                          ? 'bg-red-100'
+                          : isSent
+                            ? 'bg-red-100'
+                            : 'bg-green-100'
+                      }`}>
+                        <Icon className={`w-5 h-5 ${getTransactionColor(tx, user?.accountNumber)}`} />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900">
+                          {isSent ? 'Sent' : 'Received'}{' '}
+                          {isSent
+                            ? `to ${tx.receiverName} (${tx.to})`
+                            : `from ${tx.senderName} (${tx.from})`}
+                        </p>
+                        {tx.description && (
+                          <p className="text-sm text-gray-500">{tx.description}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className={`font-semibold ${
+                        tx.status === 'failed'
+                          ? 'text-gray-400'
+                          : isSent
+                            ? 'text-red-600'
+                            : 'text-green-600'
+                      }`}>
+                        {isSent ? '-' : '+'}{formatCurrency(tx.amount)}
+                      </p>
+                      <p className="text-sm text-gray-500">{new Date(tx.timestamp).toLocaleString()}</p>
+                      {tx.status === 'failed' && (
+                        <p className="text-xs text-red-600 font-medium">Failed</p>
+                      )}
+                    </div>
                   </div>
                 </Card>
               );

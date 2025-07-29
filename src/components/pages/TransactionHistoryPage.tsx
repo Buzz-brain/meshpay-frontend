@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Receipt, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
+import { ArrowLeft, Send, Receipt } from "lucide-react";
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { formatCurrency } from '../../utils/auth';
@@ -56,7 +56,7 @@ export const TransactionHistoryPage: React.FC<TransactionHistoryPageProps> = ({ 
 
   const getTransactionIcon = (transaction: Transaction, userAccount: string) => {
     const isSent = transaction.from === userAccount;
-    return isSent ? ArrowUpRight : ArrowDownLeft;
+    return isSent ? Send : Receipt;
   };
 
   const getTransactionColor = (transaction: Transaction, userAccount: string) => {
@@ -163,7 +163,7 @@ export const TransactionHistoryPage: React.FC<TransactionHistoryPageProps> = ({ 
                           {getTransactionType(transaction, userAccount)}
                         </p>
                         <p className="text-sm text-gray-600">
-                          {isSent ? `To ${transaction.to}` : `From ${transaction.from}`}
+                          {isSent ? `To ${transaction.receiverName} ((${transaction.to})` : `From ${transaction.senderName} (${transaction.from})`}
                         </p>
                         {transaction.description && (
                           <p className="text-sm text-gray-500">{transaction.description}</p>
