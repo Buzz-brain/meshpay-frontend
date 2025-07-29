@@ -146,7 +146,7 @@ export const TransactionHistoryPage: React.FC<TransactionHistoryPageProps> = ({ 
               const Icon = getTransactionIcon(transaction, userAccount);
               const isSent = transaction.from === userAccount;
               return (
-                <Card key={transaction.id} className="p-4">
+                <Card key={transaction._id || transaction.id} className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-4 ${

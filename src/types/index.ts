@@ -33,11 +33,12 @@ export interface ApiResponse<T = any> {
 
 export interface Transaction {
   id: string;
+  _id?: string;
   from: string;
   to: string;
   amount: number;
   timestamp: string;
-  status: 'success' | 'failed' | 'pending';
+  status: "success" | "failed" | "pending";
   description?: string;
 }
 
