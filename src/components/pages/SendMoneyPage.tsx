@@ -104,11 +104,8 @@ export const SendMoneyPage: React.FC<SendMoneyPageProps> = ({ onNavigate }) => {
         from: formatAccountNumber(user.accountNumber),
         to: formData.recipient,
         amount: formData.amount,
-        // amount: parseFloat(formData.amount),
         description: formData.description || '',
       };
-
-      // console.log(transferData)
 
       const response = await apiService.transfer(transferData);
 
