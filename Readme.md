@@ -8,11 +8,11 @@
 
 ---
 
-## 🔍 What is MeshPay? (Beginner-Friendly Explanation)
+## 🔍 What is MeshPay?
 
-<b>MeshPay</b> is a simple but powerful digital payment system that allows people to make payments even when there is <b>no internet connection</b> — especially useful in <b>rural or underserved areas</b> in Africa.
+<b>MeshPay</b> is a simple but powerful digital payment system that allows people to make payments even when there is <b>no internet connection</b>, especially useful in <b>rural or underserved areas</b> in Africa.
 
-Imagine a small town with no good internet. People can still pay digitally using MeshPay by connecting to nearby devices using their phones, just like how you'd connect to a Wi-Fi signal. These devices form a <b>local payment network</b>, where each transaction is passed through nearby nodes (devices) to a central point where it's approved — <i>all without needing the internet</i>.
+Imagine a small town with no good internet. People can still pay digitally using MeshPay by connecting to nearby devices using their phones, just like how you'd connect to a Wi-Fi signal. These devices form a <b>local payment network</b>, where each transaction is passed through nearby nodes (devices) to a central point where it's approved, <i>all without needing the internet</i>.
 
 ---
 
@@ -102,6 +102,6 @@ Imagine a small town with no good internet. People can still pay digitally using
 * A local computer brain (written in JavaScript),
 * And real-time Wi-Fi connections (WebSocket + JSON).
 
-Together, they help people send money or communicate without needing a central internet connection — perfect for villages or places with poor infrastructure.
+Together, they help people send money or communicate without needing a central internet connection, perfect for villages or places with poor infrastructure.
 
 ---
