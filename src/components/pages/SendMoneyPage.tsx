@@ -26,7 +26,8 @@ export const SendMoneyPage: React.FC<SendMoneyPageProps> = ({ onNavigate }) => {
   const [alert, setAlert] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
   const [transferResult, setTransferResult] = useState<any>(null);
 
-  const user = authUtils.getUser();
+  const result = authUtils.getUser();
+  const user = (result as any)?.user || result;
   if (!user) {
     onNavigate('welcome');
     return null;
@@ -94,16 +95,19 @@ export const SendMoneyPage: React.FC<SendMoneyPageProps> = ({ onNavigate }) => {
     }
   };
 
+  console.log(user.accountNumber);
   const handleSendMoney = async () => {
     setLoading(true);
     setAlert(null);
 
     try {
       const transferData = {
-        from: formatAccountNumber(user.phone),
+        from: formatAccountNumber(user.accountNumber),
         to: formData.recipient,
         amount: parseFloat(formData.amount)
       };
+
+      console.log(transferData)
 
       const response = await apiService.transfer(transferData);
 
@@ -115,6 +119,7 @@ export const SendMoneyPage: React.FC<SendMoneyPageProps> = ({ onNavigate }) => {
       }
     } catch (error) {
       setAlert({ type: 'error', message: 'Transaction failed. Please try again.' });
+      console.log(error)
     } finally {
       setLoading(false);
     }
